@@ -52,6 +52,11 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 	private JLabel deleteLabel;
 	private JTextField deleteTextField;
 	private JButton deleteButton;
+	private JLabel passwordLabel;
+	private JTextField passwordTextField;
+	private JButton connectButton;
+
+
 	private JLabel displayLabel;
 	private JTextArea displayTextArea;
 	private int displayCounter = 0;
@@ -60,7 +65,7 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 	//database connection setup variables
 	private String url = "jdbc:mysql://localhost:3306/payroll_database";
 	private String username = "root";
-	private String password = "zerotoONE";
+	private String password;
 	private Connection connection;
 	private CallableStatement addStatement;
 	private CallableStatement removeStatement;
@@ -99,8 +104,7 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 			this.getGross(displayCounter) + "\nNet: " + this.getNet(displayCounter) +
 			"\nPenalty: " + this.getPenalty(displayCounter) + "\nFinal Pay: " + this.getFinalPay(displayCounter));
 			
-			// fix displayCounter issue involving multiple sessions/logins
-			//add remove record function
+			//Add to database
 			try {
 				this.addStatement = this.connection.prepareCall("{call payroll_add (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
 				
@@ -133,7 +137,8 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 					e.printStackTrace();
 				}
 			}
-			
+
+			//Reset textfields
 			this.firstTextField.setText("");
 			this.middleTextField.setText("");
 			this.lastTextField.setText("");
@@ -146,9 +151,7 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 			this.penaltyTextField.setText("");
 			
 			displayCounter++; 
-		}
-		
-		else if (event.getSource()==deleteButton) {
+		} else if (event.getSource()==deleteButton) {
 			try {
 				
 				this.deleteElement = Integer.parseInt(deleteTextField.getText());
@@ -169,7 +172,23 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 				}
 			}
 			this.deleteTextField.setText("");
-		} else {}
+		} else if (event.getSource()==connectButton) {
+			try {
+
+				this.setPassword(passwordTextField.getText());
+
+				connection = DriverManager.getConnection(url, username, password);
+
+				this.passwordTextField.setText("");
+
+				System.out.println("Connected to the database successfully.");
+
+			} catch (SQLException e) {
+				System.out.println("Could not connect to the server.");
+				e.printStackTrace();
+			}
+		}
+		else {}
 		
 	}
 	
@@ -190,6 +209,10 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
         }
         return gross;
 		
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 	
 	public void setJobString(String jobString) {
@@ -280,6 +303,10 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 		deleteLabel = new JLabel("Delete Employee");
 		deleteLabel.setBackground(Color.LIGHT_GRAY);
 		deleteLabel.setOpaque(true);
+
+		passwordLabel = new JLabel("Password");
+		passwordLabel.setBackground(Color.LIGHT_GRAY);
+		passwordLabel.setOpaque(true);
 		
 		displayLabel = new JLabel("Display");
 		displayLabel.setBackground(Color.LIGHT_GRAY);
@@ -312,6 +339,9 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 		
 		deleteTextField = new JTextField();
 		deleteTextField.setPreferredSize(new Dimension (45,35));
+
+		passwordTextField = new JTextField();
+		passwordTextField.setPreferredSize(new Dimension (45,35));
 		
 		displayTextArea = new JTextArea();
 		displayTextArea.setPreferredSize(new Dimension (590, 204));
@@ -327,6 +357,10 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 		deleteButton = new JButton("Delete");
 		deleteButton.setBounds(100, 100, 155, 50);
 		deleteButton.addActionListener(this);
+
+		connectButton = new JButton("Connect");
+		connectButton.setBounds(100, 100, 155, 50);
+		connectButton.addActionListener(this);
 		
 		//JComboBox
 		
@@ -375,6 +409,9 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 		upperPanel.add(deleteLabel);
 		upperPanel.add(deleteTextField);
 		upperPanel.add(deleteButton);
+		upperPanel.add(passwordLabel);
+		upperPanel.add(passwordTextField);
+		upperPanel.add(connectButton);
 		
 		//add stuff to lowerPanel
 		lowerPanel.add(displayLabel);
@@ -396,16 +433,6 @@ public class JavaUI extends Main implements ActionListener, WindowListener {
 		//other
 		frame.pack();
 		frame.setVisible(true);
-		
-		try {
-			connection = DriverManager.getConnection(url, username, password);
-			
-			System.out.println("Connected to the database successfully.");
-			
-			} catch (SQLException e) {
-			System.out.println("Could not connect to the server.");
-			e.printStackTrace();
-			} 	
 		
 	}
 
